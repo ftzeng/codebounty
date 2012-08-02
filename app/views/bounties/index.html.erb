@@ -1,0 +1,57 @@
+<div class="top">
+  <h2>Bounties</h2>
+
+  <ul class="settings">
+    <li>
+      <button class="show">
+        <div class="btext"><%= @claimedname %></div>
+        <div class="arrow"><%= image_tag "arrow-down.png" %></div>
+      </button>
+      <ul>
+        <li><%= link_to "Show All", :sort => @sort, :claimed => 'all' %></li>
+        <li><%= link_to "Show Claimed", :sort => @sort, :claimed => 'true' %></li>
+        <li><%= link_to "Show Unclaimed", :sort => @sort, :claimed => 'false' %></li>
+      </ul>
+    </li>
+    <li>
+      <button class="sort">
+        <div class="btext"><%= @sortname %></div>
+        <div class="arrow"><%= image_tag "arrow-down.png" %></div>
+      </button>
+      <ul>
+        <li><%= link_to "Newest", :sort => 'DESC', :claimed => @claimed %></li>
+        <li><%= link_to "Oldest", :sort => 'ASC', :claimed => @claimed %></li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<% if @bounties.empty? %>
+  <div class="empty">
+    <h2>No bounties!</h2>
+
+    <% if user_signed_in? %>
+      <a href="<%=url_for(new_bounty_path)%>">
+        <div class="gobig">
+          <%= image_tag "superadd.png" %>
+          <h3>Add a new bounty</h3>
+        </div>
+      </a>
+    <% end %>
+  </div>
+<% else %>
+  <ul class="bounties">
+  <% @bounties.each do |bounty| %>
+    <a href="<%= url_for(bounty) %>">
+      <li>
+        <div class="details">
+          <div><%= bounty.problem %></div>
+          <div class="deadline">Deadline: <%= bounty.deadline %></div>
+        </div>
+        <div class="arrow"><%= image_tag "arrow.png" %></div>
+      </li>
+    </a>
+  <% end %>
+  </ul>
+<% end %>
+

@@ -1,0 +1,14 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Name:</b>
+  <%= @user.name %>
+</p>
+
+<% if @user.user_bounties.where(:owner => true).empty? %>
+		<h3>This user hasn't created any bounties</h3>
+<% else %>
+	<% @user.user_bounties.where(:owner => true).each do |bounty| %>
+		
+	<% end %>
+<% end %>

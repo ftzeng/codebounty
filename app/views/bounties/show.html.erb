@@ -1,0 +1,49 @@
+<div class="info">
+	<h3><%= @bounty.problem %></h3>
+	<div>
+		<h6>Deadline</h6>
+	  <h4><%= @bounty.deadline %> <span><%= distance_of_time_in_words_to_now( @bounty.deadline ) %> remaining</span></h4>
+	</div>
+	<div>
+		<h6>Created By</h6>
+		<h4><%= @bounty.owner.user.name %></h4>
+	</div>
+	<section>
+		<h6>Claimed By</h6>
+		<% if @bounty.claimers.empty? %>
+			<h2>This bounty has yet to be claimed!</h2>
+		<% else %>	
+			<ul class="claimers">
+				<% @bounty.claimers.each do |claimer| %>
+					<li><%= claimer.user.name %></li>
+				<% end %>
+			</ul>
+		<% end %>
+	</section>
+
+	<section class="description">
+	  <%= @bounty.description %>
+	</section>
+
+	<section class="cta">
+		<% if !current_user.nil? %>
+			<% if @bounty.users.exists?( current_user.id ) %>
+				<% if @bounty.owner.user_id != current_user.id %>
+					<%= link_to "Unclaim this bounty", { :controller => 'bounties', :action => 'removeBounty', :id => @bounty }, :class => "claim" %>
+				<% else %>
+					<div class="manage-bounty">
+						<%= link_to 'Edit this bounty', edit_bounty_path(@bounty) %> &middot;
+					  <%= link_to 'Delete this bounty', @bounty, method: :delete, data: { confirm: 'Are you sure?' } %>
+					</div>
+				<% end %>
+			<% else %>
+				<%= link_to "Claim this bounty", { :controller => 'bounties', :action => 'addBounty', :id => @bounty }, :class => "claim" %>
+			<% end %>
+		<% else %>
+			<%= link_to "Join to claim bounties!", new_user_registration_path, :class => "claim" %>
+		<% end %>
+	</section>
+</div>
+
+
+

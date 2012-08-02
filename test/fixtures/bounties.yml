@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  problem: MyString
+  deadline: 2012-07-31
+  description: MyText
+
+two:
+  problem: MyString
+  deadline: 2012-07-31
+  description: MyText

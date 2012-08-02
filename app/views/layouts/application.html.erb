@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Code Bounty</title>
+  <%= stylesheet_link_tag    "style", :media => "all" %>
+  <%= javascript_include_tag "application" %>
+  <%= csrf_meta_tags %>
+</head>
+<body>
+
+	<script>
+	$(function(){
+
+		// nav rollups
+		var height = $('.nav li').height();
+		$('.nav li').live('mouseover', function() {
+			$(this).height( 56 + 20 );
+			$(this).siblings().css('margin-top',20);
+			$(this).find('h5').css('bottom', '0.6em');
+		}).live('mouseleave', function() {
+			$(this).height( 56 );
+			$(this).siblings().css("margin-top",0);
+			$(this).find('h5').css('bottom', '-4em');
+		});
+
+		// menu dropdowns
+		$('.settings li').hover( function() {
+			$(this).find('button').addClass('dropped');
+			$(this).find('ul').stop(true).slideDown();
+		}, function() {
+			$(this).find('ul').stop(true).slideUp( 'fast', function() {
+				$(this).siblings('button').removeClass('dropped');
+			});
+		});
+
+		$('form input[type!=hidden]:first').focus()
+
+	});
+	</script>
+
+<header>
+	<h1><a href="/">Code Bounty</a></h1>
+	<div class="search">
+		<input type="text" placeholder="Search bounties or users" size="30">
+		<button class="go-search"><%= image_tag "search.png" %></button>
+	</div>
+	<ul class="nav">
+		<% if user_signed_in? %>
+			<li><%= link_to image_tag("logout.png"), destroy_user_session_path, method: :delete %><h5>Exit</h5></li>
+			<li><%= link_to image_tag("user.png"), edit_user_registration_path %><h5>You</h5></li>
+			<li><%= link_to image_tag("add.png"), new_bounty_path %><h5>Add</h5></li>
+		<% else %>
+			<li><%= link_to image_tag("user.png"), new_user_registration_path %><h5>Join</h5></li>
+			<li><%= link_to image_tag("login.png"), new_user_session_path %><h5>Login</h5></li>
+		<% end %>
+	</ul>
+</header>
+<div class="main" role="main">
+	<div class="content">
+
+		<p class="notice"><%= notice %></p>
+	  <p class="alert"><%= alert %></p>
+
+		<%= yield %>
+	</div>
+</div>
+
+</body>
+</html>
