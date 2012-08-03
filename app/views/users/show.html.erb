@@ -1,14 +1,55 @@
 <p id="notice"><%= notice %></p>
 
-<p>
-  <b>Name:</b>
-  <%= @user.name %>
-</p>
-
-<% if @user.user_bounties.where(:owner => true).empty? %>
-		<h3>This user hasn't created any bounties</h3>
-<% else %>
-	<% @user.user_bounties.where(:owner => true).each do |bounty| %>
-		
+<div class="user-bounties">
+	<% if user_signed_in? and @user.id == current_user.id %>
+		<div>
+			<h2>My Bounties</h2>
+			<% if @user.user_bounties.where(:owner => true).empty? %>
+					<h3>You haven't created any bounties</h3>
+			<% else %>
+				<ul>
+					<% @user.user_bounties.where(:owner => true).each do |userbounty| %>
+						<li><%= link_to userbounty.bounty.problem, userbounty.bounty %></li>
+					<% end %>
+				</ul>
+			<% end %>
+		</div>
+		<div>
+			<h2>My Claims</h2>
+			<% if @user.user_bounties.where(:owner => false).empty? %>
+					<h3>You haven't claimed any bounties</h3>
+			<% else %>
+				<ul>
+					<% @user.user_bounties.where(:owner => false).each do |userbounty| %>
+						<li><%= link_to userbounty.bounty.problem, userbounty.bounty %></li>
+					<% end %>
+				</ul>
+			<% end %>
+		</div>
+	<% else %>
+		<div>
+			<h2><%= @user.name %>'s Bounties</h2>
+			<% if @user.user_bounties.where(:owner => true).empty? %>
+					<h3>This user hasn't created any bounties</h3>
+			<% else %>
+				<ul>
+					<% @user.user_bounties.where(:owner => true).each do |userbounty| %>
+						<li><%= link_to userbounty.bounty.problem, userbounty.bounty %></li>
+					<% end %>
+				</ul>
+			<% end %>
+		</div>
+		<div>
+			<h2><%= @user.name %>'s Claims</h2>
+			<% if @user.user_bounties.where(:owner => false).empty? %>
+					<h3>This user hasn't claimed any bounties</h3>
+			<% else %>
+				<ul>
+					<% @user.user_bounties.where(:owner => false).each do |userbounty| %>
+						<li><%= link_to userbounty.bounty.problem, userbounty.bounty %></li>
+					<% end %>
+				</ul>
+			<% end %>
+		</div>
 	<% end %>
-<% end %>
+</div>

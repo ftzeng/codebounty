@@ -2,8 +2,9 @@
 <html>
 <head>
   <title>Code Bounty</title>
-  <%= stylesheet_link_tag    "style", :media => "all" %>
+  <%= stylesheet_link_tag "style", :media => "all" %>
   <%= javascript_include_tag "application" %>
+  <%= javascript_include_tag "jqui.min" %>
   <%= csrf_meta_tags %>
 </head>
 <body>
@@ -33,7 +34,11 @@
 			});
 		});
 
-		$('form input[type!=hidden]:first').focus()
+		// Focus on first form input
+		$('.main form input[type!=hidden]:first').focus();
+
+		// Fade out notices
+		$('.notice').delay(1000).fadeOut();
 
 	});
 	</script>
@@ -41,16 +46,27 @@
 <header>
 	<h1><a href="/">Code Bounty</a></h1>
 	<div class="search">
-		<input type="text" placeholder="Search bounties or users" size="30">
-		<button class="go-search"><%= image_tag "search.png" %></button>
+		<%= form_tag bounties_path, :method => 'get' do %>
+			<%= text_field_tag :search, params[:search], :placeholder => "Search bounties", :size => "30" %>
+			<% if !@sort.nil? %>
+				<%= hidden_field_tag(:sort, @sort) %>
+			<% end %>
+			<% if !@claimed.nil? %>
+				<%= hidden_field_tag(:claimed, @claimed) %>
+			<% end %>
+			<%= content_tag :button, :type => :submit do %>
+				<%= image_tag "search.png" %>
+			<% end %>
+		<% end %>
 	</div>
 	<ul class="nav">
 		<% if user_signed_in? %>
 			<li><%= link_to image_tag("logout.png"), destroy_user_session_path, method: :delete %><h5>Exit</h5></li>
-			<li><%= link_to image_tag("user.png"), edit_user_registration_path %><h5>You</h5></li>
+			<li><%= link_to image_tag("settings.png"), edit_user_registration_path %><h5>Info</h5></li>
+			<li><%= link_to image_tag("user.png"), current_user %><h5>You</h5></li>
 			<li><%= link_to image_tag("add.png"), new_bounty_path %><h5>Add</h5></li>
 		<% else %>
-			<li><%= link_to image_tag("user.png"), new_user_registration_path %><h5>Join</h5></li>
+			<li><%= link_to image_tag("join.png"), new_user_registration_path %><h5>Join</h5></li>
 			<li><%= link_to image_tag("login.png"), new_user_session_path %><h5>Login</h5></li>
 		<% end %>
 	</ul>

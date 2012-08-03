@@ -8,6 +8,9 @@ Codebounty::Application.routes.draw do
 
   match "/bounties/:id/addbounty" => "bounties#addBounty"
   match "/bounties/:id/removebounty" => "bounties#removeBounty"
+  match "/bounties/:id/completebounty" => "bounties#completeBounty"
+  match "/bounties/:id/uncompletebounty" => "bounties#uncompleteBounty"
+  match "/bounties/:id/vote" => "bounties#vote"
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

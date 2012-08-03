@@ -1,36 +1,105 @@
+<script>
+	$(function() {
+		$('#progress-slider').slider({
+			max:100,
+			min:0,
+			step:1,
+			value: <%= @bounty.progress %>,
+			slide: function(event, ui) {
+				$(this).siblings('.progress').css( 'width', ui.value + '%')
+			},
+			stop: function(event, ui) {
+				$.ajax({
+						type: 'POST',
+            url: "/bounties/<%= @bounty.id %>.json",
+            data: { _method: 'PUT', bounty: { progress: ui.value } },
+            dataType: 'json',
+            success: function() {
+            	$('.updated').fadeIn().delay(500).fadeOut();
+            }
+        });
+			}
+		});
+	});
+</script>
+
 <div class="info">
-	<h3><%= @bounty.problem %></h3>
-	<div>
-		<h6>Deadline</h6>
-	  <h4><%= @bounty.deadline %> <span><%= distance_of_time_in_words_to_now( @bounty.deadline ) %> remaining</span></h4>
-	</div>
-	<div>
-		<h6>Created By</h6>
-		<h4><%= @bounty.owner.user.name %></h4>
-	</div>
+	<section class="info-top">
+		<h3><%= @bounty.problem %></h3> <h5 class="thecreator">Created by <%= link_to @bounty.owner.user.name, @bounty.owner.user %></h5>
+	</section>
 	<section>
+		<div>
+			<h6>Deadline</h6>
+		  <h4><%= @bounty.deadline %> <span><%= distance_of_time_in_words_to_now( @bounty.deadline ) %> 
+		  	<% if Date.today > @bounty.deadline %>
+		  		ago
+		  	<% else %>
+		  		remaining
+		  	<% end %>
+		  </span></h4>
+		</div>
+		<div>
+			<h6>Interest</h6>
+		  <h4>$<%= @bounty.interest %></h4>
+
+		  <% if user_signed_in? %>
+		  	<div class="voting">
+			  	<div class="up">
+			  		<%= link_to image_tag('upvote.png'), { :controller => 'bounties', :action => 'vote', :id => @bounty, :vote => 1}, :class => 'vote' %>
+			  		<div class="tooltip">Interested</div>
+			  	</div>
+				  <div class="down">
+				  	<%= link_to image_tag('downvote.png'), { :controller => 'bounties', :action => 'vote', :id => @bounty, :vote => -1 }, :class => 'vote' %>
+				  	<div class="tooltip">Not Interested</div>
+				  </div>
+				</div>
+		  <% end %>
+		</div>
+	</section>
+	<div class="claimedby">
 		<h6>Claimed By</h6>
 		<% if @bounty.claimers.empty? %>
 			<h2>This bounty has yet to be claimed!</h2>
 		<% else %>	
 			<ul class="claimers">
 				<% @bounty.claimers.each do |claimer| %>
-					<li><%= claimer.user.name %></li>
+					<li><%= link_to claimer.user.name, claimer.user %></li>
 				<% end %>
 			</ul>
 		<% end %>
-	</section>
+	</div>
 
-	<section class="description">
+
+	<div class="description">
 	  <%= @bounty.description %>
-	</section>
+	</div>
 
-	<section class="cta">
-		<% if !current_user.nil? %>
+	<div class="progress-display">
+		<h6>Progress towards completion</h6>
+		<% if user_signed_in? and @bounty.users.exists?( current_user.id ) %>
+			<div class="updated">Bounty progress updated.</div>
+			<div class="progress-bar">
+				<div id="progress-slider"></div>
+				<div class="progress" style="width:<%= @bounty.progress %>%;"></div>
+			</div>
+		<% else %>
+			<div class="progress-bar">
+				<div class="progress" style="width:<%= @bounty.progress %>%;"></div>
+			</div>
+		<% end %>
+	</div>
+
+	<div class="cta">
+		<% if user_signed_in? %>
 			<% if @bounty.users.exists?( current_user.id ) %>
 				<% if @bounty.owner.user_id != current_user.id %>
 					<%= link_to "Unclaim this bounty", { :controller => 'bounties', :action => 'removeBounty', :id => @bounty }, :class => "claim" %>
-				<% else %>
+				<% elsif @bounty.owner.user_id == current_user.id %>
+					<% if @bounty.status? == "Completed" %>
+						<%= link_to "Mark this bounty as incomplete", { :controller => 'bounties', :action => 'uncompleteBounty', :id => @bounty }, :class => "claim" %>
+					<% else %>
+						<%= link_to "Mark this bounty completed", { :controller => 'bounties', :action => 'completeBounty', :id => @bounty }, :class => "claim" %>
+					<% end %>
 					<div class="manage-bounty">
 						<%= link_to 'Edit this bounty', edit_bounty_path(@bounty) %> &middot;
 					  <%= link_to 'Delete this bounty', @bounty, method: :delete, data: { confirm: 'Are you sure?' } %>
@@ -42,7 +111,7 @@
 		<% else %>
 			<%= link_to "Join to claim bounties!", new_user_registration_path, :class => "claim" %>
 		<% end %>
-	</section>
+	</div>
 </div>
 
 

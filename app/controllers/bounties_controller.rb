@@ -13,22 +13,41 @@ class BountiesController < ApplicationController
     end
     @sort = params[:sort]
 
-    claimed = params[:claimed] == 'true' ? true : false
-
-    if params[:claimed].nil? or params[:claimed] == 'all'
-      @bounties = Bounty.find(:all, :order => 'updated_at ' + params[:sort])
-      @claimed = 'all'
-      @claimedname = 'Show All'
+    if params[:status].nil?
+      status = 'all'
     else
-      @bounties = Bounty.where(:claimed => claimed).order('updated_at ' + params[:sort])
-      @claimed = claimed
-      if (claimed)
-        @claimedname = "Show Claimed"
+      status = params[:status]
+    end
+
+    if params[:status].nil? or params[:status] == 'all'
+      if params[:search].nil?
+        @bounties = Bounty.find(:all, :order => 'updated_at ' + params[:sort])
       else
-        @claimedname = "Show Unclaimed"
+        @bounties = Bounty.find(:all, :conditions => ["problem LIKE ?", "%#{params[:search]}%"], :order => 'updated_at ' + params[:sort])
+      end
+      @status = 'all'
+      @statusname = 'Show All'
+    else
+      if params[:search].nil?
+        @bounties = Bounty.where(:status => status.to_i).order('updated_at ' + params[:sort])
+      else
+        @bounties = Bounty.find(:all, :conditions => ["status = ? and problem LIKE ?", status, "%#{params[:search]}%"], :order => 'updated_at ' + params[:sort])
+      end
+      @status = status
+      if status == 1
+        @statusname = "Show Claimed"
+      elsif status == 0
+        @statusname = "Show Unclaimed"
+      elsif status == 2
+        @statusname = "Show Completed"
       end
     end
 
+    if !params[:search].nil?
+      @search = params[:search]
+    else
+      @search = ""
+    end
 
     respond_to do |format|
       format.html # index.html.erb
@@ -84,7 +103,6 @@ class BountiesController < ApplicationController
   # PUT /bounties/1.json
   def update
     @bounty = Bounty.find(params[:id])
-    @bounty.user_bounties.build(:user => current_user, :owner => false)
 
     respond_to do |format|
       if @bounty.update_attributes(params[:bounty])
@@ -100,6 +118,7 @@ class BountiesController < ApplicationController
   def addBounty
     @bounty = Bounty.find(params[:id])
     @bounty.user_bounties.build(:user => current_user, :owner => false)
+    @bounty.update_attributes( :status => 1 )
 
     if @bounty.save
       redirect_to @bounty, notice: 'Bounty successfully claimed'
@@ -111,11 +130,64 @@ class BountiesController < ApplicationController
    def removeBounty
     @bounty = Bounty.find(params[:id])
     @bounty.user_bounties.find_by_user_id( current_user.id ).destroy
+    if ( !@bounty.isClaimed? )
+      @bounty.update_attributes( :status => 0 )
+    end
 
     if @bounty.save
       redirect_to @bounty, notice: 'Bounty successfully unclaimed'
     else
       redirect_to @bounty, notice: "something got messed up"
+    end
+  end
+
+  def completeBounty
+    @bounty = Bounty.find(params[:id])
+    if current_user.id == @bounty.users.find(:first, :conditions => ["owner = ?", true]).id
+      @bounty.update_attributes( :status => 2 )
+
+      if @bounty.save
+        redirect_to @bounty, notice: 'Bounty completed!'
+      else
+        redirect_to @bounty, notice: "something got messed up"
+      end
+    end
+  end
+
+  def uncompleteBounty
+    @bounty = Bounty.find(params[:id])
+    if current_user.id == @bounty.users.find(:first, :conditions => ["owner = ?", true]).id
+      if ( @bounty.isClaimed? )
+        @bounty.update_attributes( :status => 1 )
+      else
+        @bounty.update_attributes( :status => 0 )
+      end
+
+      if @bounty.save
+        redirect_to @bounty, notice: 'Bounty marked as incomplete!'
+      else
+        redirect_to @bounty, notice: "something got messed up"
+      end
+    end
+  end
+
+  def vote
+    @bounty = Bounty.find(params[:id])
+    @vote = @bounty.votes.find(:first, :conditions => ["user_id = ? and bounty_id = ?", current_user.id, @bounty.id]) || @bounty.votes.build(:user_id => current_user.id)
+
+    oldValue = @vote.value || 0
+
+    vote = params[:vote].to_i >= 1 ? 1 : -1
+    @vote.update_attributes( :value => vote )
+
+    voteChange = vote - oldValue
+
+    @bounty.update_attributes( :interest => @bounty.interest + voteChange )
+
+    if @vote.save and @bounty.save
+      redirect_to @bounty, notice: 'Interest updated'
+    else
+      redirect_to @bounty, notice: 'something got messed up'
     end
   end
 
